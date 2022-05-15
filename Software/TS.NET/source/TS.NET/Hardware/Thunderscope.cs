@@ -188,6 +188,9 @@ namespace TS.NET
         private void Initialise()
         {
             Write32(BarRegister.DATAMOVER_REG_OUT, 0);
+            hardwareState.PllEnabled = true;    //RSTn high --> PLL active
+            ConfigureDatamover(hardwareState);
+            Thread.Sleep(1);
             hardwareState.BoardEnabled = true;
             ConfigureDatamover(hardwareState);
             ConfigurePLL();
@@ -279,9 +282,6 @@ namespace TS.NET
         private void ConfigurePLL()
         {
             //Strobe RST line on power on
-
-            hardwareState.PllEnabled = true;    //RSTn high --> PLL active
-            ConfigureDatamover(hardwareState);
             Thread.Sleep(1);
             hardwareState.PllEnabled = false;    //RSTn low --> PLL reset
             ConfigureDatamover(hardwareState);
@@ -298,7 +298,7 @@ namespace TS.NET
                 0X012660, 0X01277F, 0X012904, 0X012AB3,
                 0X012BC0, 0X012C80, 0X001C10, 0X001D80,
                 0X034003, 0X020141, 0X022105, 0X022240,
-                0X000C02, 0X000B01;
+                0X000C02, 0X000B01};
 
             // write to the clock generator
             for (int i = 0; i < config_clk_gen.Length; i++)
@@ -313,14 +313,16 @@ namespace TS.NET
 
         const byte I2C_BYTE_PLL = 0xFF;
         const byte CLOCK_GEN_I2C_ADDRESS_WRITE = 0b11011000;
+        const byte CLOCK_GEN_WRITE_COMMAND = 0x02;
         private void SetPllRegister(byte reg_high, byte reg_low, byte value)
         {
-            Span<byte> fifo = new byte[5];
+            Span<byte> fifo = new byte[6];
             fifo[0] = I2C_BYTE_PLL;
             fifo[1] = CLOCK_GEN_I2C_ADDRESS_WRITE;
-            fifo[2] = reg_high;
-            fifo[3] = reg_low;
-            fifo[4] = value;
+            fifo[2] = CLOCK_GEN_WRITE_COMMAND;
+            fifo[3] = reg_high;
+            fifo[4] = reg_low;
+            fifo[5] = value;
             WriteFifo(fifo);
         }
 
