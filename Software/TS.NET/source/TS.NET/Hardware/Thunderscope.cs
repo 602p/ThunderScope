@@ -278,37 +278,49 @@ namespace TS.NET
 
         private void ConfigurePLL()
         {
+            //Strobe RST line on power on
+
+            hardwareState.PllEnabled = true;    //RSTn high --> PLL active
+            ConfigureDatamover(hardwareState);
+            Thread.Sleep(1);
+            hardwareState.PllEnabled = false;    //RSTn low --> PLL reset
+            ConfigureDatamover(hardwareState);
+            Thread.Sleep(1);
+            hardwareState.PllEnabled = true;    //RSTn high --> PLL active
+            ConfigureDatamover(hardwareState);
+            Thread.Sleep(1);
+
             // These were provided by the chip configuration tool.
-            ushort[] config_clk_gen = {
-                0x0010, 0x010B, 0x0233, 0x08B0,
-                0x0901, 0x1000, 0x1180, 0x1501,
-                0x1600, 0x1705, 0x1900, 0x1A32,
-                0x1B00, 0x1C00, 0x1D00, 0x1E00,
-                0x1F00, 0x2001, 0x210C, 0x2228,
-                0x2303, 0x2408, 0x2500, 0x2600,
-                0x2700, 0x2F00, 0x3000, 0x3110,
-                0x3200, 0x3300, 0x3400, 0x3500,
-                0x3800, 0x4802 };
+            uint[] config_clk_gen = {
+                0X000902, 0X062108, 0X063140, 0X010006,
+                0X010120, 0X010202, 0X010380, 0X010A20,
+                0X010B03, 0X01140D, 0X012006, 0X0125C0,
+                0X012660, 0X01277F, 0X012904, 0X012AB3,
+                0X012BC0, 0X012C80, 0X001C10, 0X001D80,
+                0X034003, 0X020141, 0X022105, 0X022240,
+                0X000C02, 0X000B01;
 
             // write to the clock generator
-            for (int i = 0; i < config_clk_gen.Length / 2; i++)
+            for (int i = 0; i < config_clk_gen.Length; i++)
             {
-                SetPllRegister((byte)(config_clk_gen[i] >> 8), (byte)(config_clk_gen[i] & 0xff));
+                SetPllRegister((byte)(config_clk_gen[i] >> 16),(byte)(config_clk_gen[i] >> 8), (byte)(config_clk_gen[i] & 0xff));
             }
 
-            hardwareState.PllEnabled = true;
-            ConfigureDatamover(hardwareState);
+            Thread.Sleep(10);
+
+            SetPllRegister((byte)(0x00),(byte)(0x0D), (byte)(0x05));
         }
 
         const byte I2C_BYTE_PLL = 0xFF;
-        const byte CLOCK_GEN_I2C_ADDRESS_WRITE = 0b10110000;
-        private void SetPllRegister(byte register, byte value)
+        const byte CLOCK_GEN_I2C_ADDRESS_WRITE = 0b11011000;
+        private void SetPllRegister(byte reg_high, byte reg_low, byte value)
         {
-            Span<byte> fifo = new byte[4];
+            Span<byte> fifo = new byte[5];
             fifo[0] = I2C_BYTE_PLL;
             fifo[1] = CLOCK_GEN_I2C_ADDRESS_WRITE;
-            fifo[2] = register;
-            fifo[3] = value;
+            fifo[2] = reg_high;
+            fifo[3] = reg_low;
+            fifo[4] = value;
             WriteFifo(fifo);
         }
 
