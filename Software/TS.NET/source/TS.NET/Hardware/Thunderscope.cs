@@ -188,9 +188,6 @@ namespace TS.NET
         private void Initialise()
         {
             Write32(BarRegister.DATAMOVER_REG_OUT, 0);
-            hardwareState.PllEnabled = true;    //RSTn high --> PLL active
-            ConfigureDatamover(hardwareState);
-            Thread.Sleep(1);
             hardwareState.BoardEnabled = true;
             ConfigureDatamover(hardwareState);
             ConfigurePLL();
@@ -281,14 +278,10 @@ namespace TS.NET
 
         private void ConfigurePLL()
         {
-            //Strobe RST line on power on
-            Thread.Sleep(1);
-            hardwareState.PllEnabled = false;    //RSTn low --> PLL reset
-            ConfigureDatamover(hardwareState);
-            Thread.Sleep(1);
+            Thread.Sleep(10);
             hardwareState.PllEnabled = true;    //RSTn high --> PLL active
             ConfigureDatamover(hardwareState);
-            Thread.Sleep(1);
+            Thread.Sleep(10);
 
             // These were provided by the chip configuration tool.
             uint[] config_clk_gen = {
