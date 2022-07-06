@@ -32,6 +32,8 @@
 #include "cdev_sgdma.h"
 #include "xdma_thread.h"
 
+#include "linux518_compat.h"
+
 
 /* Module Parameters */
 static unsigned int poll_mode;
