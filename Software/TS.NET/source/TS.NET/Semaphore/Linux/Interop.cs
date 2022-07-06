@@ -10,7 +10,7 @@ namespace TS.NET.Semaphore.Linux
     [SuppressMessage("StyleCop.CSharp.LayoutRules", "SA1513:Closing brace should be followed by blank line", Justification = "There is a bug in the rule!")]
     internal static class Interop
     {
-        private const string Lib = "librt";
+        private const string Lib = "librt.so.1";
         private const uint SEMVALUEMAX = 32767;
         private const int OCREAT = 0x040;   // create the semaphore if it does not exist
 
